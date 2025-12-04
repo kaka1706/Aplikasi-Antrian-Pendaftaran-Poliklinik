@@ -1,79 +1,73 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Poli;
+use App\Models\Clinic;
 use Illuminate\Http\Request;
 
 class PoliController extends Controller
 {
-    // GET /api/poli
-    public function index()
+    public function index()  
     {
-       $poli = Poli::with('clinic')->get();
-
-       return response()->json([
-        'status' => true,
-        'data' => $poli,
-       ]);
+        $polis = Poli::with('clinic')->get();
+        return view('app.polis.index', compact('polis'));
     }
 
-    // POST /api/poli
+    public function create()
+    {
+        $clinics = Clinic::all();
+        return view('app.polis.create', compact('clinics'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'clinic_id' => 'required|exists:clinics,id',
-            'name' => 'required|string|max:100',
+            'clinic_id'   => 'required|exists:clinics,id',
+            'name'        => 'required|string|max:100',
             'description' => 'nullable|string',
         ]);
 
-        $poli = Poli::create($request->all());
+        Poli::create($request->all());
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Poli berhasil ditambahkan',
-            'data' => $poli
-        ], 201);
+        return redirect()->route('polis.index')
+            ->with('success', 'Poli berhasil ditambahkan');
     }
 
-    // GET /api/poli/{id}
     public function show($id)
     {
         $poli = Poli::with(['clinic', 'schedules'])->findOrFail($id);
-
-        return response()->json([
-            'status' => true,
-            'data' => $poli
-        ]);
+        return view('app.polis.show', compact('poli'));
     }
 
-    // PUT /api/poli/{id}
-    public function update(Request $request, $id)
+    public function edit($id)
     {
         $poli = Poli::findOrFail($id);
+        $clinics = Clinic::all();
 
-        $request ->validate([
-            'clinic_id' => 'exists:clinics,id',
-            'name' => 'string|max:100',
+        return view('app.polis.edit', compact('poli', 'clinics'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'clinic_id'   => 'required|exists:clinics,id',
+            'name'        => 'required|string|max:100',
             'description' => 'nullable|string',
         ]);
 
+        $poli = Poli::findOrFail($id);
         $poli->update($request->all());
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Poli berhasil diperbarui',
-            'data' => $poli
-        ]);
+        return redirect()->route('polis.index')
+            ->with('success', 'Poli berhasil diperbarui');
     }
 
-    // DELETE /api/poli/{id}
     public function destroy($id)
     {
         Poli::destroy($id);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Poli berhasil dihapus',
-        ]);
+        return redirect()->route('polis.index')
+            ->with('success', 'Poli berhasil dihapus');
     }
 }
