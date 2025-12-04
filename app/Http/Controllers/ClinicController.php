@@ -7,26 +7,37 @@ use Illuminate\Http\Request;
 
 class ClinicController extends Controller
 {
+    // Menampilkan halaman index Blade
     public function index()
     {
         $clinics = Clinic::all();
-
-        return response()->json([
-            'status' => true,
-            'data' => $clinics
-        ]);
+        return view('app.clinics.index', compact('clinics'));
     }
 
-    public function indexWithDetails()
+    // Jika ingin API
+    public function indexApi()
     {
-        $clinics = Clinic::with('polies.schedules')->get();
-
+        $clinics = Clinic::all();
         return response()->json([
             'status' => true,
             'data' => $clinics
         ]);
     }
 
+    // Menampilkan form create
+    public function create()
+    {
+        return view('app.clinics.create');
+    }
+
+    // Menampilkan form edit
+    public function edit($id)
+    {
+        $clinic = Clinic::findOrFail($id);
+        return view('app.clinics.edit', compact('clinic'));
+    }
+
+    // Simpan data baru (API dan form bisa sama)
     public function store(Request $request)
     {
         $request->validate([
@@ -37,13 +48,11 @@ class ClinicController extends Controller
 
         $clinic = Clinic::create($request->all());
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Clinic berhasil dibuat',
-            'data'    => $clinic
-        ], 201);
+        return redirect()->route('clinics.index')
+                         ->with('success', 'Clinic berhasil dibuat');
     }
 
+    // Update data
     public function update(Request $request, $id)
     {
         $clinic = Clinic::findOrFail($id);
@@ -56,21 +65,17 @@ class ClinicController extends Controller
 
         $clinic->update($request->all());
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Clinic berhasil diperbarui',
-            'data'    => $clinic
-        ]);
+        return redirect()->route('clinics.index')
+                         ->with('success', 'Clinic berhasil diperbarui');
     }
 
+    // Hapus data
     public function destroy($id)
     {
         $clinic = Clinic::findOrFail($id);
         $clinic->delete();
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Clinic berhasil dihapus'
-        ]);
+        return redirect()->route('clinics.index')
+                         ->with('success', 'Clinic berhasil dihapus');
     }
 }
