@@ -1,0 +1,239 @@
+openapi: 3.0.3
+info:
+  title: Antrian Poli Service API
+  version: 1.0.0
+  description: >
+    API untuk sistem pendaftaran poliklinik dan antrian mahasiswa (Kelompok 2).
+    Autentikasi belum diaktifkan (menunggu JWT dari Kelompok 1).
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development
+
+paths:
+
+  /clinics:
+    get:
+      tags: [Clinics]
+      summary: Get all clinics
+      responses:
+        200:
+          description: Clinics list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Clinic'
+
+  /clinics/{id}:
+    get:
+      tags: [Clinics]
+      summary: Get clinic details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Clinic details
+        404:
+          description: Clinic not found
+
+  /clinics/{clinic_id}/polis:
+    get:
+      tags: [Poli]
+      summary: Get poli list for a clinic
+      parameters:
+        - in: path
+          name: clinic_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Poli list
+
+  /polis/{id}:
+    get:
+      tags: [Poli]
+      summary: Get poli details including schedules
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Poli details
+
+  /polis/{poli_id}/schedules:
+    get:
+      tags: [Schedules]
+      summary: Get schedules of a poli
+      parameters:
+        - in: path
+          name: poli_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Schedule list
+
+    post:
+      tags: [Schedules]
+      summary: Create schedule for a poli
+      parameters:
+        - in: path
+          name: poli_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSchedule'
+      responses:
+        201:
+          description: Schedule created
+
+  /schedules/{id}:
+    get:
+      tags: [Schedules]
+      summary: Get schedule details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Schedule details
+
+  /queue/active/{student_id}:
+    get:
+      tags: [Queue]
+      summary: Get active queue for student
+      parameters:
+        - in: path
+          name: student_id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Active queue
+
+  /queue:
+    post:
+      tags: [Queue]
+      summary: Create queue entry (student registers)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQueue'
+      responses:
+        201:
+          description: Queue created
+
+  /queue/history/{student_id}:
+    get:
+      tags: [Queue]
+      summary: Get queue history for student
+      parameters:
+        - in: path
+          name: student_id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: History list
+
+
+components:
+  schemas:
+
+    Clinic:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Poli:
+      type: object
+      properties:
+        id:
+          type: integer
+        clinic_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: integer
+        poli_id:
+          type: integer
+        day_of_week:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        quota:
+          type: integer
+
+    CreateSchedule:
+      type: object
+      required:
+        - day_of_week
+        - start_time
+        - end_time
+        - quota
+      properties:
+        day_of_week:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        quota:
+          type: integer
+
+    CreateQueue:
+      type: object
+      required:
+        - student_id
+        - poli_schedule_id
+      properties:
+        student_id:
+          type: string
+        poli_schedule_id:
+          type: integer

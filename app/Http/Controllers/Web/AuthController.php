@@ -1,12 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+/**
+ * Show the login page.
+ *
+ * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+ */
+
     public function loginPage()
     {
         return view('auth.login');

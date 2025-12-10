@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Queue;
 use App\Models\PoliSchedule;
 use Illuminate\Http\Request;
 
 class QueueController extends Controller
 {
-    /**
-     * GET /api/queue/active/{student_id}
-     * Mendapatkan antrian aktif mahasiswa (status: menunggu)
-     */
+
     public function active($student_id)
     {
         $queue = Queue::with('schedule')
@@ -25,10 +23,6 @@ class QueueController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/queue
-     * Mahasiswa mendaftar antrian
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -36,21 +30,17 @@ class QueueController extends Controller
             'poli_schedule_id'  => 'required|exists:poli_schedules,id',
         ]);
 
-        // Pastikan jadwal poli valid
         $schedule = PoliSchedule::findOrFail($request->poli_schedule_id);
 
-        // Hitung antrian yang sudah ada
         $currentQueueCount = Queue::where('poli_schedule_id', $schedule->id)->count();
 
-        // Cek kuota penuh
         if ($currentQueueCount >= $schedule->quota) {
             return response()->json([
                 'status' => false,
                 'message' => 'Kuota antrian sudah penuh untuk jadwal ini.'
-            ], 400); // Bad Request
+            ], 400);
         }
 
-        // Cek apakah student sudah mendaftar di jadwal ini
         $already = Queue::where('student_id', $request->student_id)
             ->where('poli_schedule_id', $schedule->id)
             ->where('status', 'menunggu')
@@ -60,17 +50,15 @@ class QueueController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Anda sudah terdaftar pada antrian jadwal ini.'
-            ], 409); // Conflict
+            ], 409);
         }
 
-        // Ambil nomor antrian terakhir
         $lastQueue = Queue::where('poli_schedule_id', $schedule->id)
             ->orderBy('queue_number', 'desc')
             ->first();
 
         $nextQueueNumber = $lastQueue ? $lastQueue->queue_number + 1 : 1;
 
-        // Simpan antrian baru
         $queue = Queue::create([
             'student_id'        => $request->student_id,
             'poli_schedule_id'  => $schedule->id,
@@ -85,10 +73,7 @@ class QueueController extends Controller
         ], 201);
     }
 
-    /**
-     * GET /api/queue/history/{student_id}
-     * Mendapatkan seluruh riwayat antrian mahasiswa
-     */
+
     public function history($student_id)
     {
         $history = Queue::with('schedule')

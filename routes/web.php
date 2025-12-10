@@ -1,12 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ClinicController;
-use App\Http\Controllers\PoliController;
-use App\Http\Controllers\QueueController;
-use App\Http\Controllers\PoliScheduleController;
+use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\ClinicController;
+use App\Http\Controllers\Web\PoliController;
 
 
 // Halaman Login
@@ -33,17 +31,13 @@ Route::middleware(['auth'])->group(function () {
     // CRUD Poli
     Route::resource('polis', PoliController::class);
 
-    // CRUD Antrian
-    Route::resource('queues', QueueController::class);
-
-    // CRUD Jadwal Poli
-    Route::resource('schedules', PoliScheduleController::class);
-
-    // Riwayat Antrian
-    Route::get('history', [QueueController::class, 'history'])
-        ->name('history.index');
 });
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+Route::get('/api/docs', function () {
+    return view('l5-swagger::index');
+});
+
