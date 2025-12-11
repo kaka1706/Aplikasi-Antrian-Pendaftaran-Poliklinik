@@ -188,7 +188,21 @@
     @include('layouts.topbar')
 
     {{-- Sidebar --}}
-    @include('layouts.sidebar')
+    {{-- @include('layouts.sidebar') --}}
+    <aside class="w-64 bg-white shadow-lg p-4">
+        <h2 class="text-xl font-bold mb-4">Menu</h2>
+
+        @if(Auth::user()->role === 'admin_prodi')
+            <a href="/dashboard/prodi" class="block py-2">Dashboard Prodi</a>
+            <a href="/clinics" class="block py-2">Kelola Klinik</a>
+        @endif
+
+        @if(Auth::user()->role === 'admin_poli')
+            <a href="/dashboard/poli" class="block py-2">Dashboard Poli</a>
+            <a href="/polis" class="block py-2">Kelola Poli</a>
+            <a href="/antrian" class="block py-2">Kelola Antrian</a>
+        @endif
+    </aside>
 
     {{-- Main Content --}}
     <main id="main" class="dashboard">

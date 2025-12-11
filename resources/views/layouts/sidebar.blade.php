@@ -25,12 +25,12 @@
             </a>
         </li>
 
-        <li class="nav-item">
-            <a class="nav-link {{ Request::is('queues*') ? '' : 'collapsed' }}" href="{{ route('queues.index') }}">
-                <i class="bi bi-list-check"></i>
-                <span>Antrian</span>
-            </a>
-        </li>
+        @auth
+            @if(auth()->user()->role === 'poli')
+                <li><a href="{{ route('queues.index') }}">Antrian</a></li>
+            @endif
+        @endauth
+
 
         <li class="nav-item">
             <a class="nav-link {{ Request::is('history*') ? '' : 'collapsed' }}" href="{{ route('history.index') }}">

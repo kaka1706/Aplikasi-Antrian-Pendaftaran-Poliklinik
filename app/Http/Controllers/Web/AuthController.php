@@ -23,14 +23,24 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('dashboard');
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        // redirect berdasarkan role
+        if ($user->role === 'admin_prodi') {
+            return redirect()->route('dashboard.prodi');
+        } elseif ($user->role === 'admin_poli') {
+            return redirect()->route('dashboard.poli');
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ]);
+        return redirect()->route('dashboard');
+    }
+
+    return back()->withErrors([
+        'email' => 'Email atau password salah.',
+    ]);
     }
 
     public function logout(Request $request)

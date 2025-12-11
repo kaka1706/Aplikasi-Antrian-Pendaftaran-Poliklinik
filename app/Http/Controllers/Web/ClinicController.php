@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
+use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 
 class ClinicController extends Controller
@@ -40,18 +42,35 @@ class ClinicController extends Controller
 
     // Simpan data baru (API dan form bisa sama)
     public function store(Request $request)
-    {
-        $request->validate([
-            'name'        => 'required|string|max:255',
-            'address'     => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'address' => 'required|string|max:255',
+        'description' => 'nullable|string',
+    ]);
 
-        $clinic = Clinic::create($request->all());
+    $clinic = Clinic::create($request->only(['name','address','description']));
 
-        return redirect()->route('clinics.index')
-                         ->with('success', 'Clinic berhasil dibuat');
-    }
+    // create default admin poli for this clinic
+    $defaultEmail = Str::slug($clinic->name) . '@poli.local';
+    $rawPassword = 'iniadminpoli12';
+    $hashPassword = bcrypt($rawPassword);
+
+    User::create([
+        'name' => 'Admin Poli - ' . $clinic->name,
+        'email' => $defaultEmail,
+        'password' => $hashPassword,
+        'role' => 'admin_poli',
+        'clinic_id' => $clinic->id,
+    ]);
+
+    // optional: notify the prodi admin with the new admin's credentials
+    // or log them somewhere. For now we'll flash password to session (not safe for production)
+    // session()->flash('new_poli_admin', ['email'=>$defaultEmail,'password_raw'=>$rawPassword]);
+
+    return redirect()->route('clinics.index')
+                     ->with('success', 'Clinic berhasil dibuat. Admin Poli otomatis dibuat dengan email: '.$defaultEmail);
+}
 
     // Update data
     public function update(Request $request, $id)
