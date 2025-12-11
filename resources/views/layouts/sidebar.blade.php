@@ -26,16 +26,9 @@
         </li>
 
         <li class="nav-item">
-            <a class="nav-link {{ Request::is('queues*') ? '' : 'collapsed' }}" href="{{ route('queues.index') }}">
+            <a class="nav-link {{ Request::is('queues*') ? '' : 'collapsed' }}" {{--href="{{ route('queues.index') }}"--}}>
                 <i class="bi bi-list-check"></i>
                 <span>Antrian</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link {{ Request::is('history*') ? '' : 'collapsed' }}" href="{{ route('history.index') }}">
-                <i class="bi bi-clock-history"></i>
-                <span>Riwayat</span>
             </a>
         </li>
     </ul>

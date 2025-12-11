@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ClinicController;
 use App\Http\Controllers\Web\PoliController;
+use App\Http\Controllers\Web\QueueController;
 
 
 // Halaman Login
@@ -30,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
 
     // CRUD Poli
     Route::resource('polis', PoliController::class);
+
+    // Queue Management
+    Route::resource('queues', QueueController::class);
 
 });
 
