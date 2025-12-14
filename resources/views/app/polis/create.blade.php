@@ -18,49 +18,62 @@
         <form action="{{ route('polis.store') }}" method="POST">
             @csrf
 
-            {{-- Pilih Klinik --}}
-            <div class="mb-3">
-                <label for="clinic_id" class="form-label">Pilih Klinik</label>
-                <select name="clinic_id" id="clinic_id" 
+            {{-- PILIH KLINIK --}}
+            @if(auth()->user()->role === 'admin_poli' || auth()->user()->role === 'poli')
+                {{-- Admin poli: clinic otomatis --}}
+                <input type="hidden" name="clinic_id" value="{{ auth()->user()->clinic_id }}">
+
+                <div class="mb-3">
+                    <label class="form-label">Klinik</label>
+                    <input type="text" class="form-control" 
+                           value="{{ auth()->user()->clinic->name ?? 'Klinik Anda' }}" 
+                           disabled>
+                </div>
+            @else
+                {{-- Superadmin / prodi --}}
+                <div class="mb-3">
+                    <label for="clinic_id" class="form-label">Pilih Klinik</label>
+                    <select name="clinic_id" id="clinic_id"
                         class="form-control @error('clinic_id') is-invalid @enderror" required>
-                    <option value="">-- Pilih Klinik --</option>
-                    @foreach ($clinics as $clinic)
-                        <option value="{{ $clinic->id }}" 
-                            {{ old('clinic_id') == $clinic->id ? 'selected' : '' }}>
-                            {{ $clinic->name }}
-                        </option>
-                    @endforeach
-                </select>
+                        <option value="">-- Pilih Klinik --</option>
+                        @foreach ($clinics as $clinic)
+                            <option value="{{ $clinic->id }}"
+                                {{ old('clinic_id') == $clinic->id ? 'selected' : '' }}>
+                                {{ $clinic->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                @error('clinic_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+                    @error('clinic_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endif
 
-            {{-- Nama Poli --}}
+            {{-- NAMA POLI --}}
             <div class="mb-3">
                 <label for="name" class="form-label">Nama Poli</label>
-                <input type="text" 
-                       class="form-control @error('name') is-invalid @enderror" 
-                       id="name" name="name" 
-                       value="{{ old('name') }}" 
+                <input type="text"
+                       class="form-control @error('name') is-invalid @enderror"
+                       id="name" name="name"
+                       value="{{ old('name') }}"
                        placeholder="Contoh: Poli Gigi" required>
 
                 @error('name')
-                <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
-            {{-- Deskripsi --}}
+            {{-- DESKRIPSI --}}
             <div class="mb-3">
                 <label for="description" class="form-label">Keterangan (Opsional)</label>
-                <textarea class="form-control @error('description') is-invalid @enderror" 
-                          id="description" 
+                <textarea class="form-control @error('description') is-invalid @enderror"
+                          id="description"
                           name="description"
                           rows="3">{{ old('description') }}</textarea>
 
                 @error('description')
-                <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 

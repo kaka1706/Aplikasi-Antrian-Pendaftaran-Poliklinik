@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>InPol | @yield('title')</title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Poppins:wght@100;300;400;500;600;700;800;900&family=Raleway:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Vendor CSS Files -->
     <link href="{{ URL::asset('assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -21,7 +21,7 @@
     <link href="{{ URL::asset('assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
     <link href="{{ URL::asset('assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
-    <!-- Main CSS -->
+    <!-- Main CSS File -->
     <link href="{{ URL::asset('assets/css/main.css') }}" rel="stylesheet">
 
     <style>
@@ -35,108 +35,55 @@
             color: #444;
             min-height: 100vh;
             position: relative;
+            overflow-x: hidden;
         }
 
-        /* ---------- DASHBOARD ---------- */
+        /* ==============================
+            FIXED SIDEBAR ALWAYS VISIBLE
+        ===============================*/
+
+        .sidebar {
+            width: 300px;
+            position: fixed;
+            top: 60px;
+            left: 0 !important;
+            height: calc(100vh - 60px);
+            z-index: 9997;
+            transition: none !important;
+        }
+
         .dashboard {
             padding-top: 60px;
-            transition: all 0.3s ease;
+            padding-left: 300px !important;
+            transition: none !important;
             min-height: calc(100vh - 60px);
         }
 
-        @media (min-width: 1200px) {
-            body:not(.toggle-sidebar) .dashboard {
-                padding-left: 300px;
-            }
-
-            body.toggle-sidebar .dashboard {
-                padding-left: 0;
-            }
+        /* NONAKTIFKAN toggle-sidebar sepenuhnya */
+        body.toggle-sidebar .sidebar {
+            left: 0 !important;
         }
 
-        @media (max-width: 1199px) {
-            .dashboard {
-                padding-left: 0 !important;
-            }
-
-            .sidebar {
-                left: -300px;
-            }
-
-            body.toggle-sidebar .sidebar {
-                left: 0;
-            }
-
-            /* FIX: overlay tidak menghalangi klik */
-            body.toggle-sidebar .dashboard::after {
-                content: "";
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.4);
-                pointer-events: none;
-                z-index: 10;
-            }
+        body.toggle-sidebar .dashboard {
+            padding-left: 300px !important;
         }
 
-        /* ---------- SIDEBAR FIX ---------- */
-        .sidebar {
-            z-index: 1000 !important;
-            position: fixed;
-        }
-
-        /* ---------- TITLE ---------- */
-        .pagetitle {
-            margin-bottom: 10px;
+        /* Hapus overlay abu-abu */
+        .dashboard::after {
+            content: none !important;
         }
 
         .pagetitle h1 {
             font-size: 24px;
-            font-weight: 600;
             color: #012970;
+            font-weight: 600;
         }
 
-        /* ---------- CARD ---------- */
         .dashboard .card {
-            margin-bottom: 30px;
             border: none;
-            border-radius: 5px;
-            box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
-        }
-
-        .dashboard .card-header {
-            border-color: #ebeef4;
-            background: #fff;
-            color: #798eb3;
-            padding: 15px;
-        }
-
-        .dashboard .card-title {
-            padding: 20px 0 15px;
-            font-size: 18px;
-            font-weight: 500;
-            color: #012970;
-        }
-
-        .breadcrumb {
-            font-size: 14px;
-            color: #899bbd;
-            font-weight: 600;
-        }
-
-        .breadcrumb a {
-            color: #899bbd;
-        }
-
-        .breadcrumb a:hover {
-            color: #51678f;
-        }
-
-        .breadcrumb .active {
-            color: #51678f;
-            font-weight: 600;
+            margin-bottom: 30px;
+            border-radius: 6px;
+            box-shadow: 0 0 30px rgba(1, 41, 112, 0.1);
         }
     </style>
 
@@ -145,16 +92,17 @@
 
 <body>
 
-    {{-- Header --}}
+    {{-- TOPBAR --}}
     @include('layouts.topbar')
 
-    {{-- Sidebar --}}
+    {{-- SIDEBAR --}}
     @include('layouts.sidebar')
 
-    {{-- Main --}}
+    {{-- MAIN CONTENT --}}
     <main id="main" class="dashboard">
         <div class="container-fluid py-4 px-4">
 
+            {{-- PAGE TITLE --}}
             <div class="pagetitle">
                 <h1>@yield('title')</h1>
                 <nav>
@@ -164,8 +112,8 @@
                 </nav>
             </div>
 
+            {{-- PAGE CONTENT --}}
             @yield('content')
-
         </div>
     </main>
 
@@ -190,4 +138,5 @@
     @stack('js')
 
 </body>
+
 </html>
