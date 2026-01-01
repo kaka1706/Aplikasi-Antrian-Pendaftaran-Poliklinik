@@ -4,21 +4,21 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
-use App\Models\Poli;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClinicController extends Controller
 {
-    // List klinik
+    // Menampilkan halaman index Blade
     public function index()
     {
-        $clinics = Clinic::all();
+        $clinics = Clinic::orderBy('created_at', 'desc')->get();
         return view('app.clinics.index', compact('clinics'));
     }
 
-    // API optional
+    // Jika ingin API
     public function indexApi()
     {
         $clinics = Clinic::all();
@@ -28,79 +28,135 @@ class ClinicController extends Controller
         ]);
     }
 
-    // Form create
+    // Menampilkan form create
     public function create()
     {
         return view('app.clinics.create');
     }
 
-    // Form edit
+    // Menampilkan form edit
     public function edit($id)
     {
         $clinic = Clinic::findOrFail($id);
         return view('app.clinics.edit', compact('clinic'));
     }
 
-    // Simpan data & buat admin poli + poli default otomatis
+    // Simpan data baru (API dan form bisa sama)
     public function store(Request $request)
     {
+        // Tambah validasi unique untuk mencegah duplikasi
         $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:clinics,name',
+            'address' => 'required|string|max:500',
             'description' => 'nullable|string',
+        ], [
+            'name.unique' => 'Nama klinik sudah terdaftar. Mohon gunakan nama lain.'
         ]);
 
-        // 1️⃣ Buat klinik
-        $clinic = Clinic::create($request->only(['name','address','description']));
+        // Gunakan transaction untuk konsistensi data
+        DB::beginTransaction();
+        
+        try {
+            $clinic = Clinic::create($request->only(['name','address','description']));
 
-        // 2️⃣ Buat Admin Poli otomatis
-        $defaultEmail = Str::slug($clinic->name) . '@poli.local';
-        $rawPassword = 'iniadminpoli12';
-        $hashPassword = bcrypt($rawPassword);
+            // create default admin poli for this clinic
+            $defaultEmail = Str::slug($clinic->name) . '@poli.local';
+            $rawPassword = 'iniadminpoli12';
+            $hashPassword = bcrypt($rawPassword);
 
-        User::create([
-            'name'      => 'Admin Poli - ' . $clinic->name,
-            'email'     => $defaultEmail,
-            'password'  => $hashPassword,
-            'role'      => 'admin_poli',
-            'clinic_id' => $clinic->id,
-        ]);
+            User::create([
+                'name' => 'Admin Poli - ' . $clinic->name,
+                'email' => $defaultEmail,
+                'password' => $hashPassword,
+                'role' => 'admin_poli',
+                'clinic_id' => $clinic->id,
+            ]);
 
-        // 3️⃣ Tambahkan Poli Default otomatis
-        Poli::create([
-            'clinic_id'  => $clinic->id,
-            'name'       => 'Poli Umum',
-            'description'=> 'Poli utama untuk klinik ini',
-        ]);
+            DB::commit();
 
-        return redirect()->route('clinics.index')
-            ->with('success', 'Clinic berhasil dibuat. Admin Poli & Poli default berhasil dibuat.');
+            return redirect()->route('clinics.index')
+                ->with('success', 'Klinik berhasil dibuat. Admin Poli otomatis dibuat dengan email: '.$defaultEmail);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            // Jika error karena duplicate (jaga-jaga)
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['name' => 'Nama klinik sudah terdaftar.']);
+            }
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan sistem. Silakan coba lagi.']);
+        }
     }
 
-    // Update
+    // Update data
     public function update(Request $request, $id)
     {
         $clinic = Clinic::findOrFail($id);
 
+        // Tambah validasi unique, tapi ignore record saat ini
         $request->validate([
-            'name'        => 'string|max:255',
-            'address'     => 'string|max:255',
+            'name' => 'required|string|max:255|unique:clinics,name,' . $id,
+            'address' => 'required|string|max:500',
             'description' => 'nullable|string',
+        ], [
+            'name.unique' => 'Nama klinik sudah terdaftar. Mohon gunakan nama lain.'
         ]);
 
-        $clinic->update($request->all());
+        try {
+            $clinic->update($request->all());
 
-        return redirect()->route('clinics.index')
-            ->with('success', 'Clinic berhasil diperbarui');
+            // Update juga nama admin poli jika ada
+            $adminPoli = User::where('clinic_id', $clinic->id)
+                ->where('role', 'admin_poli')
+                ->first();
+            
+            if ($adminPoli) {
+                $adminPoli->update([
+                    'name' => 'Admin Poli - ' . $clinic->name
+                ]);
+            }
+
+            return redirect()->route('clinics.index')
+                ->with('success', 'Klinik berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan. Silakan coba lagi.']);
+        }
     }
 
-    // Hapus
+    // Hapus data
     public function destroy($id)
     {
         $clinic = Clinic::findOrFail($id);
-        $clinic->delete();
+        
+        DB::beginTransaction();
+        
+        try {
+            // Hapus admin poli terkait
+            User::where('clinic_id', $clinic->id)
+                ->where('role', 'admin_poli')
+                ->delete();
+            
+            // Hapus klinik
+            $clinic->delete();
+            
+            DB::commit();
 
-        return redirect()->route('clinics.index')
-            ->with('success', 'Clinic berhasil dihapus');
+            return redirect()->route('clinics.index')
+                ->with('success', 'Klinik berhasil dihapus');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal menghapus klinik.']);
+        }
     }
 }
