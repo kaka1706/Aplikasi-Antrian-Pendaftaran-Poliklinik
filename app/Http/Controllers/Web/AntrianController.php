@@ -12,7 +12,7 @@ class AntrianController extends Controller
     public function index()
     {
         // show all queues for this clinic (admin poli)
-        $user = auth::user();
+        $user = auth()->Auth::user()();
         $queues = Queue::with('schedule.poli')
             ->whereHas('schedule.poli', fn($q)=> $q->where('clinic_id', $user->clinic_id))
             ->orderBy('created_at','asc')

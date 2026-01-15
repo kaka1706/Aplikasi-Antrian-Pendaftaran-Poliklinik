@@ -30,7 +30,7 @@ class PoliScheduleController extends Controller
             'day_of_week' => 'required|string',
             'start_time'  => 'required',
             'end_time'    => 'required',
-            'quota'       => 'required|integer|min:1',
+            'quota'       => 'required|integer|min:1|max:50',
         ]);
 
         $schedule = PoliSchedule::create([
@@ -48,16 +48,7 @@ class PoliScheduleController extends Controller
         ], 201);
     }
 
-    /**
-     * Dapatkan detail jadwal poli.
-     * Get schedule details.
-     *
-     * Deskripsi (ID): Menampilkan data lengkap jadwal poli.
-     * Description (EN): Get detailed information of a poli schedule.
-     *
-     * @group Schedules
-     * @urlParam id integer required ID schedule.
-     */
+
     public function show($id)
     {
         $schedule = PoliSchedule::with('poli')->findOrFail($id);
