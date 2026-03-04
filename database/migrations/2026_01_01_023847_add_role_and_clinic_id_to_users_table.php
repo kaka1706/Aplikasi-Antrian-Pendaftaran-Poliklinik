@@ -7,23 +7,34 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::table('users', function (Blueprint $table) {
+{
+    Schema::table('users', function (Blueprint $table) {
+
+        if (!Schema::hasColumn('users', 'role')) {
             $table->string('role')->after('password');
-            $table->unsignedBigInteger('clinic_id')->nullable()->after('role');
+        }
 
-            // optional: foreign key kalau ada tabel clinics
-            // $table->foreign('clinic_id')->references('id')->on('clinics')->nullOnDelete();
-        });
-    }
+        if (!Schema::hasColumn('users', 'clinic_id')) {
+            $table->unsignedBigInteger('clinic_id')
+                  ->nullable()
+                  ->after('role');
+        }
 
-    public function down(): void
-    {
-        Schema::table('users', function (Blueprint $table) {
-            // optional kalau pakai foreign key
-            // $table->dropForeign(['clinic_id']);
+    });
+}
 
-            $table->dropColumn(['role', 'clinic_id']);
-        });
-    }
+public function down(): void
+{
+    Schema::table('users', function (Blueprint $table) {
+
+        if (Schema::hasColumn('users', 'clinic_id')) {
+            $table->dropColumn('clinic_id');
+        }
+
+        if (Schema::hasColumn('users', 'role')) {
+            $table->dropColumn('role');
+        }
+
+    });
+}
 };

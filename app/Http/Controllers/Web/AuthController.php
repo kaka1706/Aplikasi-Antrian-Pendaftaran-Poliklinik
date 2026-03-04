@@ -30,9 +30,9 @@ class AuthController extends Controller
 
         // redirect berdasarkan role
         if ($user->role === 'admin_prodi') {
-            return redirect()->route('dashboard.prodi');
+            return redirect()->route('dashboard');
         } elseif ($user->role === 'admin_poli') {
-            return redirect()->route('dashboard.poli');
+            return redirect()->route('dashboard');
         }
 
         return redirect()->route('dashboard');

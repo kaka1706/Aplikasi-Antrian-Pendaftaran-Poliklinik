@@ -15,7 +15,7 @@
     </div>
 
     <div class="card-body p-4">
-        <form action="{{ route('poli.update', $poli->id) }}" method="POST">
+        <form action="{{ route('polis.update', $poli->id) }}" method="POST">
             @csrf
             @method('PUT')
 
